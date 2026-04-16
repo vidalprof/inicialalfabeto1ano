@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alfabeto Interativo Completo</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#fef3c7,#dbeafe,#ede9fe);color:#111827;padding:20px}
+.wrap{max-width:1200px;margin:auto}
+.card{background:#fff;border-radius:28px;padding:22px;box-shadow:0 14px 30px rgba(0,0,0,.12);margin-bottom:18px}
+h1{margin:0 0 8px 0;color:#2563eb;text-align:center}
+.sub{text-align:center;font-size:18px;margin-bottom:16px}
+.name-row{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.name-row input{padding:12px 14px;border-radius:12px;border:2px solid #cbd5e1;min-width:260px;font-size:1rem}
+.alfabeto{display:grid;grid-template-columns:repeat(13,1fr);gap:8px;margin-bottom:18px}
+.letra{background:#fef3c7;border:2px solid #fde68a;border-radius:12px;padding:10px;text-align:center;font-size:24px;font-weight:900}
+.section-title{font-size:1.5rem;color:#7c3aed;margin:6px 0 14px 0;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.item{display:flex;align-items:center;gap:12px;background:#f8fafc;border:2px solid #e5e7eb;border-radius:18px;padding:12px}
+.pic{width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;background:#fff;border:2px solid #dbeafe;border-radius:14px}
+.label{font-size:.9rem;color:#64748b}
+.box{width:58px;height:58px;border:3px solid #6b7280;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;background:#fff;margin-left:auto;text-transform:uppercase;outline:none;caret-color:#2563eb}
+.box.active{outline:4px solid #60a5fa;border-color:#2563eb;background:#eff6ff}
+.box.correct{background:#dcfce7;border-color:#16a34a}
+.box.wrong{background:#fee2e2;border-color:#dc2626}
+.help{margin-top:12px;text-align:center;font-size:1rem;color:#475569}
+.action-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.btn{border:none;border-radius:12px;padding:12px 16px;font-size:1.05rem;font-weight:900;cursor:pointer;background:#60a5fa;color:#fff}
+.btn:hover{background:#2563eb}
+.btn.secondary{background:#8b5cf6}
+.btn.secondary:hover{background:#6d28d9}
+.status{margin-top:12px;font-size:1rem;font-weight:bold;text-align:center}
+.result{display:none;margin-top:16px;background:#fff;border:2px solid #d1d5db;border-radius:18px;padding:16px}
+.table{width:100%;border-collapse:collapse;margin-top:10px}
+.table th,.table td{border:1px solid #d1d5db;padding:8px 10px;text-align:left}
+.table th{background:#eff6ff}
+.drag-wrap{display:grid;grid-template-columns:1fr;gap:18px}
+.drop-zone{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(62px,1fr));
+  gap:10px;
+  background:linear-gradient(180deg,#f8fbff,#eef6ff);
+  border:2px dashed #bfdbfe;
+  border-radius:22px;
+  padding:16px;
+  box-shadow:inset 0 2px 10px rgba(59,130,246,.06);
+}
+.drop-slot{
+  min-height:74px;
+  border:2px dashed #93c5fd;
+  border-radius:16px;
+  background:linear-gradient(180deg,#ffffff,#f8fafc);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.5rem;
+  font-weight:900;
+  position:relative;
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+.drop-slot.hover{
+  transform:translateY(-2px) scale(1.02);
+  border-color:#3b82f6;
+  box-shadow:0 8px 18px rgba(59,130,246,.18);
+  background:linear-gradient(180deg,#eff6ff,#ffffff);
+}
+.drop-slot.filled{
+  border-style:solid;
+  border-color:#60a5fa;
+}
+.drop-slot.correct{
+  background:linear-gradient(180deg,#dcfce7,#f0fdf4);
+  border-color:#16a34a;
+}
+.drop-slot.wrong{
+  background:linear-gradient(180deg,#fee2e2,#fff1f2);
+  border-color:#dc2626;
+}
+.drag-pool{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(72px,1fr));
+  gap:12px;
+  background:linear-gradient(180deg,#ffffff,#faf5ff);
+  border:2px solid #e9d5ff;
+  border-radius:22px;
+  padding:16px;
+}
+.drag-letter{
+  padding:14px 10px;
+  border-radius:16px;
+  background:linear-gradient(180deg,#fef3c7,#fde68a);
+  border:2px solid #f59e0b;
+  text-align:center;
+  font-size:1.45rem;
+  font-weight:900;
+  cursor:grab;
+  user-select:none;
+  box-shadow:0 6px 12px rgba(245,158,11,.18);
+  transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+.drag-letter:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 18px rgba(245,158,11,.24);
+}
+.drag-letter.dragging{
+  opacity:.55;
+  transform:scale(.96);
+}
+.slot-number{
+  font-size:.72rem;
+  color:#64748b;
+  position:absolute;
+  top:5px;
+  left:8px;
+  background:#ffffffcc;
+  padding:2px 6px;
+  border-radius:999px;
+}
+@media (max-width:900px){.grid,.alfabeto{grid-template-columns:1fr} .item{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Alfabeto Interativo Completo</h1>
+    <div class="sub">Atividade 1 com letra inicial e atividade 2 com alfabeto embaralhado para arrastar e colocar na ordem correta.</div>
+    <div class="name-row">
+      <label for="studentName"><strong>Nome:</strong></label>
+      <input id="studentName" type="text" placeholder="Digite o nome do estudante (opcional)">
+    </div>
+    <div class="alfabeto"><div class="letra">A</div><div class="letra">B</div><div class="letra">C</div><div class="letra">D</div><div class="letra">E</div><div class="letra">F</div><div class="letra">G</div><div class="letra">H</div><div class="letra">I</div><div class="letra">J</div><div class="letra">K</div><div class="letra">L</div><div class="letra">M</div><div class="letra">N</div><div class="letra">O</div><div class="letra">P</div><div class="letra">Q</div><div class="letra">R</div><div class="letra">S</div><div class="letra">T</div><div class="letra">U</div><div class="letra">V</div><div class="letra">W</div><div class="letra">X</div><div class="letra">Y</div><div class="letra">Z</div></div>
+
+    <div class="section-title">Atividade 1 - Letra inicial</div>
+    <div class="grid" id="grid1"></div>
+    <div class="help">Clique no quadradinho e digite a letra inicial.</div>
+    <div class="action-row">
+      <button class="btn" onclick="verificar1()">Verificar atividade 1</button>
+      <button class="btn secondary" onclick="limpar1()">Limpar atividade 1</button>
+    </div>
+    <div class="status" id="status1">Digite diretamente nos quadradinhos.</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Atividade 2 - Arraste o alfabeto para a ordem correta</div>
+    <div class="help">Arraste cada letra com calma para o lugar certo, começando do A e terminando no Z.</div>
+    <div class="drag-wrap">
+      <div class="drop-zone" id="dropZone"></div>
+      <div class="drag-pool" id="dragPool"></div>
+    </div>
+    <div class="action-row">
+      <button class="btn" onclick="verificar2()">Verificar atividade 2</button>
+      <button class="btn secondary" onclick="reiniciar2()">Embaralhar novamente</button>
+    </div>
+    <div class="status" id="status2">Arraste as letras para os espaços na ordem correta.</div>
+  </div>
+
+  <div class="card result" id="resultBox">
+    <h2 style="margin-top:0">Resultado final</h2>
+    <div id="summary"></div>
+    <table class="table">
+      <thead><tr><th>Atividade</th><th>Acertos</th><th>Total</th><th>Aproveitamento</th></tr></thead>
+      <tbody id="resultTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const items = [{"label": "abelha", "letter": "A", "emoji": "🐝"}, {"label": "bola", "letter": "B", "emoji": "⚽"}, {"label": "casa", "letter": "C", "emoji": "🏠"}, {"label": "dado", "letter": "D", "emoji": "🎲"}, {"label": "elefante", "letter": "E", "emoji": "🐘"}, {"label": "flor", "letter": "F", "emoji": "🌸"}, {"label": "gato", "letter": "G", "emoji": "🐱"}, {"label": "helicóptero", "letter": "H", "emoji": "🚁"}, {"label": "igreja", "letter": "I", "emoji": "⛪"}, {"label": "jacaré", "letter": "J", "emoji": "🐊"}, {"label": "kiwi", "letter": "K", "emoji": "🥝"}, {"label": "leão", "letter": "L", "emoji": "🦁"}, {"label": "macaco", "letter": "M", "emoji": "🐵"}, {"label": "navio", "letter": "N", "emoji": "🚢"}, {"label": "óculos", "letter": "O", "emoji": "👓"}, {"label": "pato", "letter": "P", "emoji": "🦆"}, {"label": "queijo", "letter": "Q", "emoji": "🧀"}, {"label": "robô", "letter": "R", "emoji": "🤖"}, {"label": "sol", "letter": "S", "emoji": "☀️"}, {"label": "tartaruga", "letter": "T", "emoji": "🐢"}, {"label": "uva", "letter": "U", "emoji": "🍇"}, {"label": "vaca", "letter": "V", "emoji": "🐄"}, {"label": "waffle", "letter": "W", "emoji": "🧇"}, {"label": "xícara", "letter": "X", "emoji": "☕"}, {"label": "yakisoba", "letter": "Y", "emoji": "🥡"}, {"label": "zebra", "letter": "Z", "emoji": "🦓"}];
+const alphabet = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+let shuffled = ["Q", "M", "J", "Z", "T", "G", "F", "K", "P", "W", "L", "S", "B", "O", "X", "N", "C", "R", "Y", "E", "V", "H", "I", "A", "D", "U"];
+
+function createDigitBox(id) {
+  const box = document.createElement('div');
+  box.className = 'box';
+  box.id = id;
+  box.contentEditable = 'true';
+  box.spellcheck = false;
+  box.addEventListener('input', () => {
+    let txt = box.textContent.toUpperCase().replace(/[^A-Z]/g, '');
+    box.textContent = txt.slice(0,1);
+    placeCaretAtEnd(box);
+    box.classList.remove('correct','wrong');
+  });
+  box.addEventListener('focus', () => box.classList.add('active'));
+  box.addEventListener('blur', () => box.classList.remove('active'));
+  return box;
+}
+
+function placeCaretAtEnd(el) {
+  const range = document.createRange();
+  const sel = window.getSelection();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function buildActivity1() {
+  const grid = document.getElementById('grid1');
+  grid.innerHTML = '';
+  items.forEach((item, index) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'item';
+
+    const pic = document.createElement('div');
+    pic.className = 'pic';
+    pic.textContent = item.emoji;
+    pic.title = item.label;
+
+    const text = document.createElement('div');
+    text.innerHTML = `<div style="font-weight:900">${item.label}</div><div class="label">Digite a letra inicial</div>`;
+
+    const box = createDigitBox('a1-' + index);
+
+    wrap.appendChild(pic);
+    wrap.appendChild(text);
+    wrap.appendChild(box);
+    grid.appendChild(wrap);
+  });
+}
+
+function buildActivity2() {
+  const dropZone = document.getElementById('dropZone');
+  const dragPool = document.getElementById('dragPool');
+  dropZone.innerHTML = '';
+  dragPool.innerHTML = '';
+
+  alphabet.forEach((letter, index) => {
+    const slot = document.createElement('div');
+    slot.className = 'drop-slot';
+    slot.dataset.expected = letter;
+    slot.dataset.index = index;
+    slot.innerHTML = `<span class="slot-number">${index + 1}</span>`;
+    slot.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      slot.classList.add('hover');
+    });
+    slot.addEventListener('dragleave', () => {
+      slot.classList.remove('hover');
+    });
+    slot.addEventListener('drop', (e) => {
+      e.preventDefault();
+      slot.classList.remove('hover');
+      const id = e.dataTransfer.getData('text/plain');
+      const dragged = document.getElementById(id);
+      if (!dragged) return;
+      const currentChild = slot.querySelector('.drag-letter');
+      if (currentChild) dragPool.appendChild(currentChild);
+      slot.appendChild(dragged);
+      slot.classList.remove('correct', 'wrong');
+      slot.classList.add('filled');
+    });
+    dropZone.appendChild(slot);
+  });
+
+  shuffled.forEach((letter, index) => {
+    const chip = document.createElement('div');
+    chip.className = 'drag-letter';
+    chip.id = 'drag-' + index;
+    chip.draggable = true;
+    chip.textContent = letter;
+    chip.addEventListener('dragstart', (e) => {
+      chip.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', chip.id);
+    });
+    chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+    dragPool.appendChild(chip);
+  });
+
+  dragPool.ondragover = (e) => e.preventDefault();
+  dragPool.ondrop = (e) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    const dragged = document.getElementById(id);
+    if (dragged) {
+      const parentSlot = dragged.parentElement;
+      if (parentSlot && parentSlot.classList && parentSlot.classList.contains('drop-slot')) {
+        parentSlot.classList.remove('filled','correct','wrong');
+      }
+      dragPool.appendChild(dragged);
+    }
+  };
+}
+
+function verificar1() {
+  let acertos = 0;
+  items.forEach((item, index) => {
+    const box = document.getElementById('a1-' + index);
+    const ok = ((box.textContent || '').trim().toUpperCase() === item.letter);
+    if (ok) acertos++;
+    box.classList.remove('correct','wrong');
+    box.classList.add(ok ? 'correct' : 'wrong');
+  });
+  const perc = Math.round((acertos / items.length) * 100);
+  document.getElementById('status1').textContent = `Atividade 1: ${acertos} de ${items.length} acertos (${perc}%).`;
+  updateSummary();
+}
+
+function limpar1() {
+  items.forEach((item, index) => {
+    const box = document.getElementById('a1-' + index);
+    box.textContent = '';
+    box.classList.remove('correct','wrong','active');
+  });
+  document.getElementById('status1').textContent = 'Atividade 1 limpa.';
+  updateSummary();
+}
+
+function verificar2() {
+  const slots = [...document.querySelectorAll('.drop-slot')];
+  let acertos = 0;
+  slots.forEach(slot => {
+    const chip = slot.querySelector('.drag-letter');
+    const value = chip ? chip.textContent.trim().toUpperCase() : '';
+    const ok = value === slot.dataset.expected;
+    if (ok) acertos++;
+    slot.classList.remove('correct','wrong');
+    if (value) slot.classList.add('filled');
+    slot.classList.add(ok ? 'correct' : 'wrong');
+  });
+  const perc = Math.round((acertos / alphabet.length) * 100);
+  document.getElementById('status2').textContent = `Atividade 2: ${acertos} de ${alphabet.length} acertos (${perc}%).`;
+  updateSummary();
+}
+
+function reiniciar2() {
+  shuffled = [...alphabet].sort(() => Math.random() - 0.5);
+  buildActivity2();
+  document.getElementById('status2').textContent = 'Atividade 2 embaralhada novamente.';
+  updateSummary();
+}
+
+function computeA1() {
+  let a1 = 0;
+  items.forEach((item, index) => {
+    const box = document.getElementById('a1-' + index);
+    if (((box.textContent || '').trim().toUpperCase()) === item.letter) a1++;
+  });
+  return a1;
+}
+
+function computeA2() {
+  let a2 = 0;
+  const slots = [...document.querySelectorAll('.drop-slot')];
+  slots.forEach(slot => {
+    const chip = slot.querySelector('.drag-letter');
+    const value = chip ? chip.textContent.trim().toUpperCase() : '';
+    if (value === slot.dataset.expected) a2++;
+  });
+  return a2;
+}
+
+function updateSummary() {
+  const a1 = computeA1();
+  const a2 = computeA2();
+  const p1 = Math.round((a1 / items.length) * 100);
+  const p2 = Math.round((a2 / alphabet.length) * 100);
+  const total = items.length + alphabet.length;
+  const all = a1 + a2;
+  const pt = Math.round((all / total) * 100);
+  const nome = document.getElementById('studentName').value || 'Estudante';
+
+  document.getElementById('resultBox').style.display = 'block';
+  document.getElementById('summary').innerHTML = `<strong>${nome}</strong> acertou <strong>${all}</strong> de <strong>${total}</strong> itens (${pt}%).`;
+
+  document.getElementById('resultTable').innerHTML = `
+    <tr><td>Atividade 1 - Letra inicial</td><td>${a1}</td><td>${items.length}</td><td>${p1}%</td></tr>
+    <tr><td>Atividade 2 - Arrastar alfabeto</td><td>${a2}</td><td>${alphabet.length}</td><td>${p2}%</td></tr>
+  `;
+}
+
+buildActivity1();
+buildActivity2();
+</script>
+</body>
+</html>
